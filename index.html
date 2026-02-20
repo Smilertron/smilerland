@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smilerland!</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" type="image/png" href="images/welcomeimg.png">
+<link rel="icon" type="image/x-icon" href="images/welcomeimg.png">
+<link rel="apple-touch-icon" href="images/welcomeimg.png">
+</head>
+
+<body>
+
+<div class="bg-wave"></div>
+<div class="orb"></div>
+
+<header class="topbar">
+  <div class="logo">Smilerland: Home of EVERYTHING Smiler!</div>
+  <div class="tabs">
+    <div class="tab active" data-target="home">Home</div>
+    <div class="tab" data-target="about">About</div>
+    <div class="tab" data-target="projects">Projects</div>
+    <div class="tab" data-target="chat">Chat</div>
+    <button class="toggle" id="themeToggle">Light/Dark</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- HOME -->
+  <section id="home" class="panel" style="display:block;">
+    <h1>Welcome to SmilerLand!</h1>
+    <p>
+      SmilerLand is my way of making a community.<br>
+      It's ALSO a place for me to share my projects!<br><br>
+      Feel free to explore, chat (anonymously), and have fun!
+    </p>
+
+    <img src="images/welcomeimg.png" class="welcome-image">
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" class="panel">
+    <h2>I'm Smiler!</h2>
+    <p>
+      Well i don't know how to describe myself exactly...<br>
+      Eh, let's just describe what i've DONE, so you can get an idea!<br><br>
+
+      I HAVE:<br>
+      - Made a game called Walk On Grass, gave up, then REVIVED IT as Where Is Glimbo?<br>
+      - I've made several projects i've dropped with no hesitation.<br>
+      - I have a Youtube channel, just to upload whatever on there.<br>
+      - I've tried things, failed, tried again, and failed again, then succeeded, and then failed again.<br>
+      - I've dabbled in programming, art, and STEM, and am an insane hardware geek!<br><br>
+
+      Ok, let's try this again...<br><br>
+
+      I'm Smiler, a teem who loves dabbling in anything technology, weather it be hardware or software!<br>
+      I am by NO MEANS an expert, let alone a master, i just do this for enjoyment.<br><br>
+
+      So i'd like you to come and take a gander at like, 4 years of my work!
+    </p>
+
+    <img src="images/smug.gif" class="about-image">
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects" class="panel">
+    <h2>Projects</h2>
+    <p>My projects, ranging from sites, apps, and games!</p>
+
+    <div class="project-grid">
+
+      <div class="card">
+        <h3>Where Is Glimbo?</h3>
+        <p>Cute little platformer game still in alpha.</p>
+        <img src="images/project1.png" class="project-image">
+        <a href="content/glimbo.zip" download class="project-btn">Download Demo 1</a>
+      </div>
+
+      <div class="card">
+        <h3>Godotmium Browser</h3>
+        <p>A simple, light browser made in Godot!</p>
+        <img src="images/project2.png" class="project-image">
+        <button class="project-btn disabled">Coming Soon</button>
+      </div>
+
+      <div class="card">
+        <h3>Fancy Homepage</h3>
+        <p>Replacement homepage of browsers default, news infested pages, built into Godotmium!</p>
+        <img src="images/project3.png" class="project-image">
+        <button class="project-btn" onclick="location.href='https://smilertron.github.io/fancy-homepage.github-io/'">Visit</button>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CHAT -->
+  <section id="chat" class="panel">
+    <h2>Chatroom</h2>
+    <p>Tiny chatroom for SmilerLand members.</p>
+
+    <div class="chat-window" id="chatWindow"></div>
+
+    <div class="chat-input">
+      <input id="chatMessage" type="text" placeholder="Type a message...">
+      <button id="sendBtn">Send</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>© <span id="year"></span> Smiler</footer>
+
+<!-- POPUP -->
+<div id="namePopup" class="popup">
+  <div class="popup-inner">
+    <h3 class="accent-title">Choose a display name</h3>
+    <input id="nameInput" type="text" placeholder="Display name">
+    <button id="nameSubmit" class="project-btn">Enter Chat</button>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
+// ⭐ Your Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCY8S1OUwwvLsoje6XBAJWC0gS_O3Onu9o",
+  authDomain: "smilerland-chatroom.firebaseapp.com",
+  databaseURL: "https://smilerland-chatroom-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "smilerland-chatroom",
+  storageBucket: "smilerland-chatroom.appspot.com",
+  messagingSenderId: "588428388745",
+  appId: "1:588428388745:web:c504ad7d1baae8b1399958"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// UI logic
+const tabs=document.querySelectorAll(".tab");
+const panels=document.querySelectorAll(".panel");
+const popup=document.getElementById("namePopup");
+const nameInput=document.getElementById("nameInput");
+const nameSubmit=document.getElementById("nameSubmit");
+const chatWindow=document.getElementById("chatWindow");
+const chatMessage=document.getElementById("chatMessage");
+const sendBtn=document.getElementById("sendBtn");
+
+let username = ""; // stays until refresh
+
+// Tab switching
+tabs.forEach(tab=>{
+  tab.addEventListener("click",()=>{
+    const targetID=tab.dataset.target;
+
+    if(targetID==="chat"){
+      if(username){
+        tabs.forEach(t=>t.classList.remove("active"));
+        tab.classList.add("active");
+        panels.forEach(p=>p.style.display="none");
+        document.getElementById("chat").style.display="block";
+      } else {
+        popup.style.display="flex";
+      }
+      return;
+    }
+
+    tabs.forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    panels.forEach(p=>p.style.display="none");
+    document.getElementById(targetID).style.display="block";
+  });
+});
+
+// Popup submit
+nameSubmit.addEventListener("click",()=>{
+  username = nameInput.value.trim() || "Guest";
+
+  popup.style.display="none";
+  tabs.forEach(t=>t.classList.remove("active"));
+  document.querySelector('.tab[data-target="chat"]').classList.add("active");
+  panels.forEach(p=>p.style.display="none");
+  document.getElementById("chat").style.display="block";
+});
+
+// Send message
+sendBtn.addEventListener("click", sendMessage);
+chatMessage.addEventListener("keydown", e=>{
+  if(e.key==="Enter") sendMessage();
+});
+
+function sendMessage(){
+  const msg = chatMessage.value.trim();
+  if(!msg) return;
+
+  db.ref("messages").push({
+    name: username,
+    text: msg,
+    time: Date.now()
+  });
+
+  chatMessage.value="";
+}
+
+// Listen for messages
+db.ref("messages").on("child_added", snapshot=>{
+  const msg = snapshot.val();
+  const div = document.createElement("div");
+  div.className = "bubble";
+  div.innerHTML = `<strong>${msg.name}:</strong> ${msg.text}`;
+  chatWindow.appendChild(div);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+});
+
+// Theme toggle
+document.getElementById("themeToggle").addEventListener("click",()=>{
+  document.body.classList.toggle("light");
+});
+
+// Footer year
+document.getElementById("year").textContent=new Date().getFullYear();
+</script>
+
+</body>
+</html>
