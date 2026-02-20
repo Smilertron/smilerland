@@ -78,6 +78,7 @@
         <p>Cute little platformer game still in alpha.</p>
         <img src="images/project1.png" class="project-image">
         <button class="project-btn" onclick="location.href='https://www.dropbox.com/scl/fi/m71506fhpxb9s6dzul6ux/where-is-glimb-demo-1.zip?rlkey=kcx7ausw1cpnvtd5d3u9ausu4&st=lgyofztm&dl=1'">Download Demo 1</button>
+        <button class="project-btn" onclick="openPlayGlimbo()">Play Now!</button>
       </div>
 
       <div class="card">
@@ -92,7 +93,6 @@
         <p>Replacement homepage of browsers default, news infested pages, built into Godotmium!</p>
         <img src="images/project3.png" class="project-image">
         <button class="project-btn" onclick="location.href='https://smilertron.github.io/fancy-homepage.github-io/'">Visit</button>
-
       </div>
 
     </div>
@@ -109,6 +109,22 @@
       <input id="chatMessage" type="text" placeholder="Type a message...">
       <button id="sendBtn">Send</button>
     </div>
+  </section>
+
+  <!-- PLAY GLIMBO -->
+  <section id="play-glimbo" class="panel" style="display:none;">
+    <h2>Where Is Glimbo? – Embedded Edition!</h2>
+
+    <div class="game-container">
+        <iframe 
+            id="glimbo-iframe"
+            src="https://itch.io/embed-upload/16544656?color=333333"
+            allow="fullscreen"
+            frameborder="0">
+        </iframe>
+    </div>
+
+    <button class="project-btn" onclick="closePlayGlimbo()">Back</button>
   </section>
 
 </main>
@@ -129,7 +145,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
 <script>
-// ⭐ Your Firebase config
+// ⭐ Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCY8S1OUwwvLsoje6XBAJWC0gS_O3Onu9o",
   authDomain: "smilerland-chatroom.firebaseapp.com",
@@ -153,7 +169,7 @@ const chatWindow=document.getElementById("chatWindow");
 const chatMessage=document.getElementById("chatMessage");
 const sendBtn=document.getElementById("sendBtn");
 
-let username = ""; // stays until refresh
+let username = "";
 
 // Tab switching
 tabs.forEach(tab=>{
@@ -190,7 +206,7 @@ nameSubmit.addEventListener("click",()=>{
   document.getElementById("chat").style.display="block";
 });
 
-// Send message
+// ⭐ Send message
 sendBtn.addEventListener("click", sendMessage);
 chatMessage.addEventListener("keydown", e=>{
   if(e.key==="Enter") sendMessage();
@@ -200,7 +216,9 @@ function sendMessage(){
   const msg = chatMessage.value.trim();
   if(!msg) return;
 
-  db.ref("messages").push({
+  const newMsgRef = db.ref("messages").push();
+  newMsgRef.set({
+    id: newMsgRef.key,
     name: username,
     text: msg,
     time: Date.now()
@@ -209,14 +227,75 @@ function sendMessage(){
   chatMessage.value="";
 }
 
-// Listen for messages
+// ⭐ Send reply
+function sendReply(parentMsg, text){
+  db.ref("messages").push({
+    id: Date.now(),
+    name: username,
+    text: text,
+    time: Date.now(),
+    replyTo: {
+      name: parentMsg.name,
+      text: parentMsg.text
+    }
+  });
+}
+
+// ⭐ Open reply box
+function openReplyBox(msg, bubble){
+  const existing = document.querySelector('.reply-box');
+  if(existing) existing.remove();
+
+  const box = document.createElement("div");
+  box.className = "reply-box";
+  box.innerHTML = `
+    <input type="text" class="reply-input" placeholder="Write a reply...">
+    <button class="reply-send">Send</button>
+  `;
+
+  bubble.appendChild(box);
+
+  const sendBtn = box.querySelector(".reply-send");
+  const input = box.querySelector(".reply-input");
+
+  sendBtn.addEventListener("click",()=>{
+    const text = input.value.trim();
+    if(text){
+      sendReply(msg, text);
+      box.remove();
+    }
+  });
+}
+
+// ⭐ Listen for messages + replies
 db.ref("messages").on("child_added", snapshot=>{
   const msg = snapshot.val();
   const div = document.createElement("div");
   div.className = "bubble";
-  div.innerHTML = `<strong>${msg.name}:</strong> ${msg.text}`;
+
+  let html = "";
+
+  if(msg.replyTo){
+    html += `
+      <div class="reply-quote-bubble">
+        <strong>${msg.replyTo.name}:</strong> ${msg.replyTo.text}
+      </div>
+    `;
+  }
+
+  html += `
+    <strong>${msg.name}:</strong> ${msg.text}
+    <button class="reply-btn">Reply</button>
+  `;
+
+  div.innerHTML = html;
   chatWindow.appendChild(div);
   chatWindow.scrollTop = chatWindow.scrollHeight;
+
+  const replyBtn = div.querySelector(".reply-btn");
+  replyBtn.addEventListener("click",()=>{
+    openReplyBox(msg, div);
+  });
 });
 
 // Theme toggle
@@ -226,9 +305,32 @@ document.getElementById("themeToggle").addEventListener("click",()=>{
 
 // Footer year
 document.getElementById("year").textContent=new Date().getFullYear();
+
+// ⭐ Glimbo functions
+function openPlayGlimbo(){
+document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
+const a=document.getElementById('play-glimbo');if(a)a.style.display='block';
+window.scrollTo(0,0);
+}
+function closePlayGlimbo(){
+const c=document.getElementById('play-glimbo');if(c)c.style.display='none';
+const d=document.getElementById('projects');if(d)d.style.display='block';
+window.scrollTo(0,0);
+}
+
+// ⭐ Random click sounds
+document.addEventListener('click',()=>{
+    const sounds=[
+        'sounds/click1.ogg',
+        'sounds/click2.ogg',
+        'sounds/click3.ogg',
+        'sounds/click4.ogg'
+    ];
+    const pick=sounds[Math.floor(Math.random()*sounds.length)];
+    const audio=new Audio(pick);
+    audio.volume=0.5;
+    audio.play();
+});
 </script>
-
 </body>
-
 </html>
-
